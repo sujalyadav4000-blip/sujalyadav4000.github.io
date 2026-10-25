@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChemLab | Sujal Yadav</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #081426;
+  color: white;
+}
+header {
+  text-align: center;
+  padding: 25px 10px;
+  background: #11243d;
+  border-bottom: 2px solid #00d9c0;
+}
+header h1 { color: #00e5c3; margin: 0; }
+header p { color: #b8d5ee; }
+.owner { color: #00e5c3; font-weight: bold; }
+main { max-width: 850px; margin: 25px auto; padding: 15px; }
+.panel {
+  background: #14263f;
+  border: 1px solid #285477;
+  border-radius: 15px;
+  padding: 22px;
+}
+h2 { color: #00e5c3; }
+label { display: block; margin: 14px 0 8px; }
+input, select {
+  width: 100%;
+  padding: 13px;
+  border-radius: 8px;
+  background: #09182c;
+  color: white;
+  border: 1px solid #36769b;
+  font-size: 15px;
+}
+button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 20px;
+  background: #00e5c3;
+  color: #071426;
+  border: none;
+  border-radius: 9px;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:hover { background: #7affdf; }
+#result {
+  background: #09182c;
+  border: 1px solid #00d9c0;
+  border-radius: 10px;
+  padding: 18px;
+  margin-top: 22px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.equation { color: #ffe38b; font-weight: bold; }
+footer { text-align: center; color: #a8bed6; padding: 20px; }
+.small { font-size: 13px; color: #b7c8da; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚗️ ChemLab</h1>
+  <p>Chemical Mixing Simulator</p>
+  <p>Created by <span class="owner">Sujal Yadav</span></p>
+  <p>Mix, discover and learn chemistry!</p>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>🧪 Mix Two Chemicals</h2>
+    <p>Select two substances to see what the simulator knows about them.</p>
+
+    <label for="search">Search the chemical list</label>
+    <input id="search" placeholder="Search chemicals..."
+      oninput="filterChemicals()">
+
+    <label for="first">First chemical</label>
+    <select id="first"></select>
+
+    <label for="second">Second chemical</label>
+    <select id="second"></select>
+
+    <button onclick="mix()">🧪 Mix Chemicals</button>
+
+    <div id="result" aria-live="polite">
+      <h2>Your result will appear here!</h2>
+      Choose two chemicals and click Mix Chemicals.
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:20px">
+    <h2>🔬 About This Website</h2>
+    <p>This educational simulator is created by <b>Sujal Yadav</b>
+    to explore chemistry and learn about substances and reactions.</p>
+    <p class="small">This is a limited example database, not a complete
+    chemical reaction prediction system.</p>
+    <p class="small">Safety: Never physically mix chemicals based on
+    a simulation. Some combinations can cause fires, toxic gases,
+    heat or dangerous splashes.</p>
+  </section>
+</main>
+
+<footer>
+  Made with ❤️ by Sujal Yadav | ChemLab
+</footer>
+
+<script>
+const chemicals = {
+  water: "Water (H₂O)",
+  vinegar: "Vinegar - dilute acetic acid",
+  baking: "Baking soda - sodium bicarbonate",
+  salt: "Table salt - sodium chloride",
+  sugar: "Sugar - sucrose",
+  citric: "Citric acid",
+  chalk: "Chalk - calcium carbonate",
+  ethanol: "Ethanol",
+  oxygen: "Oxygen",
+  hydrogen: "Hydrogen",
+  iron: "Iron",
+  copper: "Copper",
+  hcl: "Hydrochloric acid",
+  naoh: "Sodium hydroxide",
+  peroxide: "Hydrogen peroxide"
+};
+
+const database = {
+  "baking+vinegar": {
+    title: "Acid–bicarbonate reaction",
+    products: "Sodium acetate, water and carbon dioxide",
+    equation: "CH₃COOH + NaHCO₃ → CH₃COONa + H₂O + CO₂",
+    explanation: "Acetic acid reacts with sodium bicarbonate, releasing carbon dioxide gas.",
+    observation: "Fizzing can occur. This is a scientific example, not an instruction to perform it."
+  },
+  "salt+water": {
+    title: "Dissolving salt",
+    products: "Salt dissolved in water",
+    equation: "NaCl (s) → Na⁺ (aq) + Cl⁻ (aq)",
+    explanation: "Salt separates into ions surrounded by water molecules. No new compound is produced.",
+    observation: "Salt dissolves in water."
+  },
+  "sugar+water": {
+    title: "Dissolving sugar",
+    products: "Sugar dissolved in water",
+    equation: "C₁₂H₂₂O₁₁ (s) → C₁₂H₂₂O₁₁ (aq)",
+    explanation: "Sugar molecules disperse in water but remain sugar molecules.",
+    observation: "The sugar dissolves."
+  },
+  "citric+water": {
+    title: "Dissolving citric acid",
+    products: "Citric acid solution",
+    equation: "Citric acid (s) → dissolved citric acid",
+    explanation: "Citric acid dissolves in water. Its molecules and ions may be present in solution.",
+    observation: "A solution forms."
+  },
+  "chalk+vinegar": {
+    title: "Acid and carbonate reaction",
+    products: "Calcium acetate, water and carbon dioxide",
+    equation: "CaCO₃ + 2CH₃COOH → Ca(CH₃COO)₂ + H₂O + CO₂",
+    explanation: "Acids react with calcium carbonate, producing carbon dioxide and other products.",
+    observation: "Gas bubbles can form under suitable conditions."
+  }
+};
+
+function fillSelects() {
+  ["first", "second"].forEach(id => {
+    const select = document.getElementById(id);
+    select.innerHTML = "";
+    Object.entries(chemicals).forEach(([key, name]) => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = name;
+      select.appendChild(option);
+    });
+  });
+  document.getElementById("first").value = "vinegar";
+  document.getElementById("second").value = "baking";
+}
+
+function filterChemicals() {
+  const term = document.getElementById("search").value.toLowerCase();
+  ["first", "second"].forEach(id => {
+    const select = document.getElementById(id);
+    const previous = select.value;
+    select.innerHTML = "";
+    Object.entries(chemicals)
+      .filter(([key, name]) =>
+        (key + " " + name).toLowerCase().includes(term))
+      .forEach(([key, name]) => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = name;
+        select.appendChild(option);
+      });
+    if ([...select.options].some(o => o.value === previous)) {
+      select.value = previous;
+    }
+  });
+}
+
+function mix() {
+  const first = document.getElementById("first").value;
+  const second = document.getElementById("second").value;
+  const result = document.getElementById("result");
+  const key = [first, second].sort().join("+");
+
+  if (!first || !second) {
+    result.textContent = "Please select two chemicals.";
+    return;
+  }
+
+  if (first === second) {
+    result.innerHTML = "<h2>Same substance</h2>" +
+      "<p>Combining the same substance does not usually form a new product under ordinary conditions.</p>";
+    return;
+  }
+
+  const reaction = database[key];
+
+  if (!reaction) {
+    result.innerHTML =
+      "<h2>🔎 No verified entry found</h2>" +
+      "<p><b>Substances:</b> " +
+      chemicals[first] + " + " + chemicals[second] + "</p>" +
+      "<p>This version does not contain a verified result for this pair.</p>" +
+      "<p>Unknown does not mean no reaction occurs. Reliable scientific data is needed to determine the products.</p>";
+    return;
+  }
+
+  result.innerHTML =
+    "<h2>✅ " + reaction.title + "</h2>" +
+    "<p><b>Substances:</b> " + chemicals[first] + " + " +
+    chemicals[second] + "</p>" +
+    "<p><b>Products:</b> " + reaction.products + "</p>" +
+    "<p class='equation'><b>Equation:</b><br>" +
+    reaction.equation + "</p>" +
+    "<p><b>Explanation:</b> " + reaction.explanation + "</p>" +
+    "<p><b>Expected observation:</b> " +
+    reaction.observation + "</p>";
+}
+
+fillSelects();
+</script>
+</body>
+</html>
+
